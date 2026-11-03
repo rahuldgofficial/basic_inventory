@@ -105,7 +105,7 @@ flowchart TD
   - **Declarative Query Scope**: `Product::scopeLowStock()` automatically filters items where `quantity <= min_stock_level` and `min_stock_level > 0`.
   - **Critical Stockout Isolation**: `ReportController::lowStock()` isolates items with zero remaining stock (`quantity == 0`) for emergency replenishment.
   - **Financial Reorder Formulation**: Computes the exact capital expenditure required to restore target inventory levels:
-    $$\text{Total Reorder Capital} = \sum (\text{min\_stock\_level} - \text{quantity}) \times \text{cost\_price}$$
+    `Total Reorder Capital = SUM((min_stock_level - quantity) * cost_price)`
 - **Code Highlights**:
   - [`app/Models/Product.php`](app/Models/Product.php): `scopeLowStock()` query scope and `isLowStock()` helper.
   - [`app/Http/Controllers/ReportController.php`](app/Http/Controllers/ReportController.php): Dynamic computation of `total_reorder_value` and `critical_items`.
@@ -116,9 +116,9 @@ flowchart TD
 ### Problem 4: Inventory Asset Visibility & Real-Time Financial Valuation
 - **The Challenge**: Management often lacks visibility into total balance-sheet capital tied up in the warehouse, unrealized profit potential, and category-level asset distribution.
 - **The Architectural Solution**: Created a real-time **Multi-Metric Financial Valuation Engine** in `ReportController::inventoryValuation()`:
-  - **Total Cost Valuation**: $\sum (\text{quantity} \times \text{cost\_price})$ &mdash; reflects real capital tied up in physical inventory.
-  - **Total Retail Potential**: $\sum (\text{quantity} \times \text{selling\_price})$ &mdash; reflects gross revenue capacity upon liquidation.
-  - **Unrealized Profit Margin**: $\sum (\text{quantity} \times (\text{selling\_price} - \text{cost\_price}))$ &mdash; provides accurate margin forecasting.
+  - **Total Cost Valuation**: `SUM(quantity * cost_price)` &mdash; reflects real capital tied up in physical inventory.
+  - **Total Retail Potential**: `SUM(quantity * selling_price)` &mdash; reflects gross revenue capacity upon liquidation.
+  - **Unrealized Profit Margin**: `SUM(quantity * (selling_price - cost_price))` &mdash; provides accurate margin forecasting.
   - **Category-Level Drill-Down**: Supports instant category filtering to assess capital allocation across product domains.
 - **Code Highlights**:
   - [`app/Http/Controllers/ReportController.php`](app/Http/Controllers/ReportController.php): Comprehensive valuation aggregations.
@@ -132,7 +132,7 @@ flowchart TD
   - Directly aggregates outbound stock movements (`type = 'out'`) across customizable date intervals.
   - Generates daily volume throughput graphs using `DATE(created_at)` database groupings.
   - Identifies the Top 10 Fast-Moving SKUs ranked by total units dispatched (`orderByDesc('total_sold')`).
-  - Estimates realized revenue yield dynamically: $\sum (\text{outbound\_quantity} \times \text{selling\_price})$.
+  - Estimates realized revenue yield dynamically: `SUM(outbound_quantity * selling_price)`.
 - **Code Highlights**:
   - [`app/Http/Controllers/ReportController.php`](app/Http/Controllers/ReportController.php): `salesSummary()` daily aggregations and top SKU extraction.
   - [`resources/views/reports/sales-summary.blade.php`](resources/views/reports/sales-summary.blade.php): Throughput analytics and transaction counts.
